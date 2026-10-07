@@ -1,0 +1,378 @@
+{
+  "$comment": "Single source of truth for who commits what. Files must be disjoint across packages. Directories include everything inside them. 'lead' commits all the logic and the base app from their own working tree. Packages with 'sourceRoot' are small extras whose files live outside the tree (ignored folder) until a contributor adds them. Run `npm run handoff -- verify` after editing.",
+  "packages": [
+    {
+      "id": "01",
+      "slug": "stellar-core",
+      "title": "Stellar core: network config, hashing and authorship registry",
+      "summary": "The heart of the product: SHA-256 content fingerprint, the manageData registration transaction, and reading a certificate back from Horizon.",
+      "dependsOn": [],
+      "commit": {
+        "subject": "Add Stellar core: config, content hashing and authorship registry",
+        "body": "Hash content with SHA-256 in the browser, anchor it on Stellar with a\nmanageData operation, and read certificates back from Horizon so anyone\ncan verify them without trusting Staries."
+      },
+      "files": [
+        "lib/stellar/config.ts",
+        "lib/stellar/hash.ts",
+        "lib/stellar/horizon.ts",
+        "lib/stellar/registry.ts",
+        "utils/stellarUtils.ts",
+        ".env.example",
+        ".gitignore"
+      ],
+      "owner": "Person 1"
+    },
+    {
+      "id": "02",
+      "slug": "payments-and-signing",
+      "title": "License payments, wallet signing hooks and Testnet smoke test",
+      "summary": "Direct author payments, the hook that signs with the connected wallet, Friendbot funding, and an end-to-end script that proves the core works on Testnet.",
+      "dependsOn": [
+        "01"
+      ],
+      "commit": {
+        "subject": "Add license payments, wallet signer hook and Testnet smoke test",
+        "body": "Payments go buyer -> author with no intermediary. useStellarSigner delegates\nsigning to the connected wallet (Staries never sees private keys).\n`npm run smoke` exercises register -> verify -> tamper -> pay on Testnet."
+      },
+      "files": [
+        "lib/stellar/payments.ts",
+        "hooks/useStellarSigner.ts",
+        "hooks/useAccountBalance.ts",
+        "scripts/smoke-stellar.ts",
+        "package.json",
+        "package-lock.json"
+      ],
+      "owner": "Person 1"
+    },
+    {
+      "id": "03",
+      "slug": "data-layer",
+      "title": "Domain model and library store",
+      "summary": "Types for Stars, chapters, registrations and purchases, plus the persisted zustand store that holds off-chain data.",
+      "dependsOn": [],
+      "commit": {
+        "subject": "Add domain model and persisted library store",
+        "body": "Works, chapters (with versioned on-chain registrations) and license\npurchases. Persisted in localStorage for the MVP behind a single store so\nthe backend can be swapped later."
+      },
+      "files": [
+        "lib/types.ts",
+        "lib/catalog.ts",
+        "lib/library.ts",
+        "store/libraryStore.ts",
+        "hooks/useLibrary.ts"
+      ],
+      "owner": "Person 1"
+    },
+    {
+      "id": "04",
+      "slug": "brand-and-ui",
+      "title": "Brand foundation and UI kit",
+      "summary": "Design tokens from the Staries brand deck (teal #3F8293, star #FFD37D, ink #1E1E26), the official Staries and NOIR logos, the star shape and the shared UI primitives.",
+      "dependsOn": [],
+      "commit": {
+        "subject": "Add Staries brand tokens, logo and UI kit",
+        "body": "Colors and typography follow the brand deck and user manual. Adds the\nofficial Staries and NOIR logos, Logo, StarShape and the shared primitives (Button, Card, Badge, Field, Alert,\nSpinner, EmptyState, Icon, PageShell)."
+      },
+      "files": [
+        "app/globals.css",
+        "components/brand",
+        "components/ui",
+        "public/brand"
+      ],
+      "owner": "Person 1"
+    },
+    {
+      "id": "05",
+      "slug": "app-shell-and-wallet",
+      "title": "App shell and wallet gating",
+      "summary": "Root layout, branded navbar and footer, startup bootstrap (wallet kit + store hydration), and the RequireWallet / FundingNotice components.",
+      "dependsOn": [
+        "01",
+        "02",
+        "03",
+        "04"
+      ],
+      "commit": {
+        "subject": "Add branded app shell, navbar and wallet gating",
+        "body": "Root layout with Montserrat, navbar with network badge and wallet pill,\nfooter, AppBootstrap, and RequireWallet/FundingNotice (one-click Testnet\nfunding through Friendbot)."
+      },
+      "files": [
+        "app/layout.tsx",
+        "components/AppBootstrap.tsx",
+        "components/Footer.tsx",
+        "components/Navbar.tsx",
+        "hooks/useWallet.ts",
+        "components/wallet"
+      ],
+      "owner": "Person 1"
+    },
+    {
+      "id": "06",
+      "slug": "landing-page",
+      "title": "Landing page",
+      "summary": "Mission, pain points, how it works, before/after, offerings (live vs coming soon) and audience — adapted from the brand deck.",
+      "dependsOn": [
+        "04"
+      ],
+      "commit": {
+        "subject": "Add landing page based on the brand deck",
+        "body": "Hero with a sample certificate, mission quote, pain points, how it works,\nbefore/after comparison, offerings with live/coming-soon status, audience."
+      },
+      "files": [
+        "app/page.tsx",
+        "components/landing"
+      ],
+      "owner": "Person 1"
+    },
+    {
+      "id": "07",
+      "slug": "author-studio",
+      "title": "Author studio: Stars and license pricing",
+      "summary": "My Stars list, New Star form and the Star management page with chapter list and license pricing.",
+      "dependsOn": [
+        "03",
+        "04",
+        "05"
+      ],
+      "commit": {
+        "subject": "Add author studio for Stars and license pricing",
+        "body": "Authors create Stars, set per-license prices (commercial, translation,\nadaptation) and manage chapters. Personal reading is always free."
+      },
+      "files": [
+        "app/write/page.tsx",
+        "app/write/new",
+        "app/write/[workId]/page.tsx",
+        "components/studio"
+      ],
+      "owner": "Person 1"
+    },
+    {
+      "id": "08",
+      "slug": "chapter-publishing",
+      "title": "Chapter editor and publish-to-Stellar flow",
+      "summary": "Editor with live fingerprint, step-by-step publish progress, and versioned registrations (each changed publish adds a new certificate).",
+      "dependsOn": [
+        "01",
+        "02",
+        "03",
+        "04",
+        "05",
+        "07"
+      ],
+      "commit": {
+        "subject": "Add chapter editor with Publish & protect on Stellar",
+        "body": "Live SHA-256 fingerprint while writing, wallet-signed registration with\nprogress steps, and versioning: every changed publish adds a certificate."
+      },
+      "files": [
+        "app/write/[workId]/chapters",
+        "components/publish",
+        "hooks/useContentHash.ts",
+        "hooks/usePublishChapter.ts"
+      ],
+      "owner": "Person 1"
+    },
+    {
+      "id": "09",
+      "slug": "certificates-and-verification",
+      "title": "Public certificate and verification",
+      "summary": "Certificate page read live from Horizon, the verify-a-text tool and the Verify entry page. No wallet or account needed.",
+      "dependsOn": [
+        "01",
+        "03",
+        "04"
+      ],
+      "commit": {
+        "subject": "Add public certificate page and text verification",
+        "body": "Certificates are read straight from the Stellar network. Anyone can paste\na text and check it against the registered fingerprint in their browser."
+      },
+      "files": [
+        "app/certificate",
+        "app/verify",
+        "components/certificate",
+        "hooks/useCertificate.ts"
+      ],
+      "owner": "Person 1"
+    },
+    {
+      "id": "10",
+      "slug": "licensing-and-activity",
+      "title": "License purchase and activity history",
+      "summary": "License panel with direct on-chain payments to the author, and the Activity page with records, sales and purchases.",
+      "dependsOn": [
+        "02",
+        "03",
+        "04",
+        "05"
+      ],
+      "commit": {
+        "subject": "Add license purchase and activity history",
+        "body": "Buyers pay the author directly on Stellar. Activity shows authorship\nrecords, licenses sold, income and purchases with links to public proofs."
+      },
+      "files": [
+        "components/license",
+        "hooks/usePurchaseLicense.ts",
+        "app/activity",
+        "components/activity"
+      ],
+      "owner": "Person 1"
+    },
+    {
+      "id": "11",
+      "slug": "catalog-and-reader",
+      "title": "Catalog, Star page and chapter reader",
+      "summary": "Explore with search and genre filters, the public Star page, and the reader that re-verifies the text against Stellar on every open.",
+      "dependsOn": [
+        "03",
+        "04",
+        "09",
+        "10"
+      ],
+      "commit": {
+        "subject": "Add catalog, Star page and verified chapter reader",
+        "body": "Readers browse protected Stars, read chapters and see an automatic\n\"authorship verified\" check that recomputes the fingerprint and compares it\nwith the record on Stellar."
+      },
+      "files": [
+        "app/explore",
+        "app/stars",
+        "components/catalog",
+        "components/reader"
+      ],
+      "owner": "Person 1"
+    },
+    {
+      "id": "12",
+      "slug": "docs-and-tooling",
+      "title": "Documentation and contributor tooling",
+      "summary": "README, architecture notes, demo script, generated work-package guide and the handoff script.",
+      "dependsOn": [],
+      "commit": {
+        "subject": "Add documentation, demo script and handoff tooling",
+        "body": "README, architecture decisions and limitations, 5-minute demo script,\nwork-package guide and the script used to split work between contributors."
+      },
+      "files": [
+        "README.md",
+        "docs",
+        "scripts/handoff.mjs",
+        "tsconfig.json",
+        "eslint.config.mjs"
+      ],
+      "owner": "Person 1"
+    },
+    {
+      "id": "13",
+      "slug": "not-found-and-loading",
+      "title": "404 page and loading screen",
+      "summary": "A friendly 404 and a branded loading screen. Two new files, picked up automatically by Next.js.",
+      "dependsOn": [
+        "04"
+      ],
+      "commit": {
+        "subject": "Add branded 404 page and loading screen",
+        "body": "Not-found page with links back home, and a pulsing star shown while pages load."
+      },
+      "files": [
+        "app/not-found.tsx",
+        "app/loading.tsx"
+      ],
+      "sourceRoot": "contrib",
+      "owner": "Person 2"
+    },
+    {
+      "id": "14",
+      "slug": "error-and-skeletons",
+      "title": "Error page and catalog skeleton",
+      "summary": "A friendly error page plus a reusable Skeleton and a placeholder grid while the catalog loads.",
+      "dependsOn": [
+        "04"
+      ],
+      "commit": {
+        "subject": "Add error page, Skeleton and catalog loading placeholder",
+        "body": "Error boundary with a try-again button, a reusable Skeleton block and a\nplaceholder grid for the Explore page."
+      },
+      "files": [
+        "app/error.tsx",
+        "components/ui/Skeleton.tsx",
+        "app/explore/loading.tsx"
+      ],
+      "sourceRoot": "contrib",
+      "owner": "Person 3"
+    },
+    {
+      "id": "15",
+      "slug": "about-and-how-it-works",
+      "title": "About and How it works pages",
+      "summary": "Why Staries exists, and a plain-language walkthrough of what happens when you publish. Pages at /about and /how-it-works.",
+      "dependsOn": [
+        "04"
+      ],
+      "commit": {
+        "subject": "Add About and How it works pages",
+        "body": "Mission and values from the brand deck, and a five-step explanation of\nfingerprint, signature, timestamp and certificate without jargon."
+      },
+      "files": [
+        "app/about/page.tsx",
+        "app/how-it-works/page.tsx"
+      ],
+      "sourceRoot": "contrib",
+      "owner": "Person 4"
+    },
+    {
+      "id": "16",
+      "slug": "faq-and-glossary",
+      "title": "FAQ and Glossary pages",
+      "summary": "Honest answers about proofs, keys, costs and licenses, plus a plain-language glossary. Pages at /faq and /glossary.",
+      "dependsOn": [
+        "04"
+      ],
+      "commit": {
+        "subject": "Add FAQ and Glossary pages",
+        "body": "Collapsible questions about authorship proofs, keys, costs and licenses,\nand definitions for the few technical terms users may meet."
+      },
+      "files": [
+        "app/faq/page.tsx",
+        "app/glossary/page.tsx"
+      ],
+      "sourceRoot": "contrib",
+      "owner": "Person 5"
+    },
+    {
+      "id": "17",
+      "slug": "roadmap-and-legal",
+      "title": "Roadmap and Legal notes pages",
+      "summary": "What is live and what is next, and the honest limits of what a certificate proves. Pages at /roadmap and /legal.",
+      "dependsOn": [
+        "04"
+      ],
+      "commit": {
+        "subject": "Add Roadmap and Legal notes pages",
+        "body": "Live and upcoming features, and plain-language legal notes: what a\ncertificate is, what it is not, and the Testnet caveat."
+      },
+      "files": [
+        "app/roadmap/page.tsx",
+        "app/legal/page.tsx"
+      ],
+      "sourceRoot": "contrib",
+      "owner": "Person 6"
+    },
+    {
+      "id": "18",
+      "slug": "wallet-guide-and-brand-kit",
+      "title": "Wallet guide and Brand kit pages",
+      "summary": "Five steps to get a wallet ready, and a visual brand kit with logo, colors, type, star, buttons and badges. Pages at /wallet-help and /brand.",
+      "dependsOn": [
+        "04"
+      ],
+      "commit": {
+        "subject": "Add wallet guide and brand kit pages",
+        "body": "Step-by-step guide to install Freighter, choose Testnet and get free coins,\nand a brand kit page showing the logo, color palette and UI components."
+      },
+      "files": [
+        "app/wallet-help/page.tsx",
+        "app/brand/page.tsx"
+      ],
+      "sourceRoot": "contrib",
+      "owner": "Person 7"
+    }
+  ],
+  "lead": "Person 1"
+}
