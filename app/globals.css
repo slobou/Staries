@@ -1,26 +1,56 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Staries design tokens.
+ * Colors are taken from the Staries brand deck / user manual:
+ *   teal  #3F8293  — primary brand, slide backgrounds, accents on dark UI
+ *   star  #FFD37D  — the "star" yellow, highlights and secondary slides
+ *   ink   #1E1E26  — app background (dark mode screens in the manual)
+ */
+@theme {
+  --color-brand: #3f8293;
+  --color-brand-light: #7cbccb;
+  --color-brand-dark: #2f6572;
+  --color-star: #ffd37d;
+  --color-star-dark: #e9b24a;
+  --color-ink: #1e1e26;
+  --color-ink-deep: #171b24;
+  --color-ink-raised: #2c333d;
+
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ink);
+  color: #ffffff;
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: var(--color-star);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-star);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

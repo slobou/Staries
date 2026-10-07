@@ -1,45 +1,25 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { useWalletStore } from '@/store/walletStore'
-import { initWalletKit, StellarWalletsKit } from '@/lib/walletKit'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useCallback, useState } from 'react'
+import Logo from '@/components/brand/Logo'
+import { useWallet } from '@/hooks/useWallet'
+import { STELLAR_NETWORK } from '@/lib/stellar/config'
+import { truncateAddress } from '@/utils/stellarUtils'
 
-function truncateAddress(address: string): string {
-  return `${address.slice(0, 4)}...${address.slice(-4)}`
-}
+const LINKS = [
+  { href: '/explore', label: 'Explore' },
+  { href: '/write', label: 'My Stars' },
+  { href: '/verify', label: 'Verify' },
+  { href: '/activity', label: 'Activity' },
+]
 
 export default function Navbar() {
-  const { address, isConnected, setAddress, reset } = useWalletStore()
-  const [mounted, setMounted] = useState(false)
+  const pathname = usePathname()
+  const { address, isConnected, ready, connecting, connect, disconnect } =
+    useWallet()
   const [copied, setCopied] = useState(false)
-  const [connecting, setConnecting] = useState(false)
-
-  useEffect(() => {
-    initWalletKit()
-    useWalletStore.persist.rehydrate()
-    setMounted(true)
-  }, [])
-
-  const connect = useCallback(async () => {
-    try {
-      setConnecting(true)
-      const { address: addr } = await StellarWalletsKit.authModal()
-      setAddress(addr)
-    } catch {
-      // user closed modal or cancelled
-    } finally {
-      setConnecting(false)
-    }
-  }, [setAddress])
-
-  const disconnect = useCallback(async () => {
-    try {
-      await StellarWalletsKit.disconnect()
-    } catch {
-      // ignore disconnect errors
-    }
-    reset()
-  }, [reset])
 
   const copyAddress = useCallback(async () => {
     if (!address) return
@@ -49,52 +29,50 @@ export default function Navbar() {
   }, [address])
 
   return (
-    <nav className="w-full border-b border-zinc-800 bg-zinc-950 px-6 py-4">
-      <div className="mx-auto flex max-w-7xl items-center justify-between">
-        {/* Logo */}
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-violet-500 to-blue-500" />
-          <span className="text-lg font-semibold text-white tracking-tight">
-            Stellar App
-          </span>
-          <span className="ml-1 rounded-full bg-violet-500/20 px-2 py-0.5 text-xs font-medium text-violet-300">
-            Testnet
+    <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-ink/90 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-6 py-4">
+        <div className="flex items-center gap-3">
+          <Link href="/" aria-label="Staries home">
+            <Logo className="h-11" />
+          </Link>
+          <span className="rounded-full bg-star/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-star">
+            {STELLAR_NETWORK}
           </span>
         </div>
 
-        {/* Wallet area */}
+        <nav aria-label="Main" className="order-last flex w-full gap-1 overflow-x-auto sm:order-none sm:w-auto">
+          {LINKS.map(({ href, label }) => {
+            const active = pathname === href || pathname.startsWith(`${href}/`)
+            return (
+              <Link
+                key={href}
+                href={href}
+                aria-current={active ? 'page' : undefined}
+                className={`rounded-full px-4 py-1.5 text-sm font-bold transition ${
+                  active
+                    ? 'bg-brand/30 text-white'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                {label}
+              </Link>
+            )
+          })}
+        </nav>
+
         <div className="flex items-center gap-2">
-          {!mounted ? null : isConnected && address ? (
+          {!ready ? null : isConnected && address ? (
             <>
-              {/* Address pill */}
-              <div className="flex items-center gap-1 rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1.5">
-                <span className="font-mono text-sm text-zinc-200">
-                  {truncateAddress(address)}
-                </span>
-                {/* Copy button */}
-                <button
-                  onClick={copyAddress}
-                  title="Copy address"
-                  className="ml-1 rounded p-0.5 text-zinc-400 transition hover:text-white"
-                >
-                  {copied ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              {copied && (
-                <span className="text-xs text-green-400 transition-opacity">Copied!</span>
-              )}
-              {/* Disconnect */}
+              <button
+                onClick={copyAddress}
+                title="Copy address"
+                className="rounded-full border border-white/15 bg-ink-raised px-3.5 py-1.5 font-mono text-sm text-white/90 transition hover:border-star"
+              >
+                {copied ? 'Copied!' : truncateAddress(address)}
+              </button>
               <button
                 onClick={disconnect}
-                className="rounded-full border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-400 transition hover:border-red-500/50 hover:text-red-400"
+                className="rounded-full px-3 py-1.5 text-sm font-bold text-white/60 transition hover:text-red-300"
               >
                 Disconnect
               </button>
@@ -103,13 +81,13 @@ export default function Navbar() {
             <button
               onClick={connect}
               disabled={connecting}
-              className="rounded-full bg-violet-600 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-violet-500 disabled:opacity-60"
+              className="rounded-full bg-star px-5 py-2 text-sm font-bold text-ink transition hover:bg-star-dark disabled:opacity-60"
             >
-              {connecting ? 'Connecting...' : 'Connect Wallet'}
+              {connecting ? 'Connecting…' : 'Connect wallet'}
             </button>
           )}
         </div>
       </div>
-    </nav>
+    </header>
   )
 }

@@ -1,12 +1,19 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useSyncExternalStore } from 'react'
 import { useWalletStore } from '@/store/walletStore'
 import { StellarWalletsKit } from '@/lib/walletKit'
 
 export function useWallet() {
   const { address, isConnected, setAddress, reset } = useWalletStore()
   const [connecting, setConnecting] = useState(false)
+
+  // `true` once the persisted wallet session has been read from localStorage.
+  const ready = useSyncExternalStore(
+    (onChange) => useWalletStore.persist.onFinishHydration(onChange),
+    () => useWalletStore.persist.hasHydrated(),
+    () => false
+  )
 
   const connect = useCallback(async () => {
     try {
@@ -29,5 +36,5 @@ export function useWallet() {
     reset()
   }, [reset])
 
-  return { address, isConnected, connecting, connect, disconnect }
+  return { address, isConnected, ready, connecting, connect, disconnect }
 }
